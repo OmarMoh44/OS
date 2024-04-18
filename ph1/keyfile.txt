@@ -1,0 +1,2 @@
+key             IPC                 communication
+'A'         message queue        communicate between process_generator and scheduler

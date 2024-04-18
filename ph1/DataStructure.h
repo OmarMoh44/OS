@@ -7,6 +7,15 @@ enum Algo
     RR = 3
 };
 
+enum State
+{
+    arrived = 0,
+    started = 1,
+    resumed = 2,
+    stopped = 3,
+    finished = 4
+};
+
 struct PData
 {
     int id; // id of process in system
@@ -15,6 +24,7 @@ struct PData
     int priority;
     int remaintime;
     int waittime;
+    enum State state;
     pid_t pid; // id of forken process (in real system) to run process.out program
 };
 
@@ -24,6 +34,7 @@ struct PNode
     struct PData val;
     struct PNode *next;
 };
+
 /*    Process Queue          */
 struct PQueue
 {
@@ -86,6 +97,20 @@ bool frontQ(struct PQueue *queue, struct PData *data)
         return false;
     *data = queue->head->val;
     return true;
+}
+
+void printQ(struct PQueue *queue)
+{
+    if (queue->count == 0)
+    {
+        return;
+    }
+    struct PNode *ptr = queue->head;
+    for (int i = 0; i < queue->count; i++)
+    {
+        printf("%d\t%d\t%d\t%d\n", ptr->val.id, ptr->val.arrivaltime, ptr->val.runningtime, ptr->val.priority);
+        ptr = ptr->next;
+    }
 }
 
 void deleteQ(struct PQueue *queue)
@@ -229,6 +254,20 @@ void delCurCQ(struct PCQueue *queue)
     queue->count--;
 }
 
+void printCQ(struct PCQueue *queue)
+{
+    if (queue->count == 0)
+    {
+        return;
+    }
+    struct PNode *ptr = queue->head;
+    for (int i = 0; i < queue->count; i++)
+    {
+        printf("%d\t%d\t%d\t%d\n", ptr->val.id, ptr->val.arrivaltime, ptr->val.runningtime, ptr->val.priority);
+        ptr = ptr->next;
+    }
+}
+
 void deleteCQ(struct PCQueue *queue)
 {
     while (queue->count != 0)
@@ -327,6 +366,20 @@ bool frontPQ(struct PPQueue *queue, struct PData *data)
         return false;
     *data = queue->head->val;
     return true;
+}
+
+void printPQ(struct PPQueue *queue)
+{
+    if (queue->count == 0)
+    {
+        return;
+    }
+    struct PPNode *ptr = queue->head;
+    for (int i = 0; i < queue->count; i++)
+    {
+        printf("%d\t%d\t%d\t%d\n", ptr->val.id, ptr->val.arrivaltime, ptr->val.runningtime, ptr->val.priority);
+        ptr = ptr->next;
+    }
 }
 
 void deletePQ(struct PPQueue *queue)

@@ -5,24 +5,26 @@ void clearResources(int);
 struct PQueue *readInputFile(); // reading data of processes and store in a buffer
 void SelAlgo();                 // read input from user to select algo and parameter if exist
 int CountDigit(int x);          // count number of digits of integer to convert it to string
+void initialResource();         // create message queue
 
 int algo = -1;
 int quantum = -1; // for only RR algo
+struct PQueue *proc;
+int msq_id; // message queue to send processes at appropriate time
 
 int main(int argc, char *argv[])
 {
     signal(SIGINT, clearResources);
     // TODO Initialization
     // 1. Read the input files.
-    struct PQueue *proc = readInputFile();
+    proc = readInputFile();
     int process_nums = proc->count;
+
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
     /*  1 -> HPF      2 -> SRTN     3 -> RR */
-
     SelAlgo();
 
     // 3. Initiate and create the scheduler and clock processes.
-
     pid_t clk_pid = fork();
     if (clk_pid == -1)
     {
@@ -35,7 +37,7 @@ int main(int argc, char *argv[])
         perror("Error in executing clk.out\n");
         exit(EXIT_FAILURE);
     }
-    
+
     pid_t sched_pid = fork();
     if (sched_pid == -1)
     {
@@ -60,30 +62,6 @@ int main(int argc, char *argv[])
         perror("Error in executing scheduler.out\n");
         exit(EXIT_FAILURE);
     }
-    struct PNode *ptr = proc->head;
-    while (ptr)
-    {
-        char st[CountDigit(ptr->val.runningtime) + 2];
-        sprintf(st, "%d", ptr->val.runningtime); // convert runningtime to string to pass it for process program
-        pid_t x = fork();
-        if (x == -1)
-        {
-            perror("Error in forking process to execute process\n");
-            exit(EXIT_FAILURE);
-        }
-        else if (x == 0)
-        {
-
-            execl("./process.out", "process.out", st, NULL);
-            perror("Error in executing process.out\n");
-            exit(EXIT_FAILURE);
-        }
-        else
-        {
-            ptr->val.pid = x;
-        }
-        ptr = ptr->next;
-    }
 
     // 4. Use this function after creating the clock process to initialize clock
     initClk();
@@ -93,36 +71,39 @@ int main(int argc, char *argv[])
     // TODO Generation Main Loop
     // 5. Create a data structure for processes and provide it with its parameters.
     // 6. Send the information to the scheduler at the appropriate time.
-
-    while (true)
+    initialResource(); // initialize IPCs
+    while (proc->count != 0)
     {
-        int y = getClk();
-        if (y == x)
-        {
-            continue;
-        }
         x = getClk();
-        printf("current time is %d\n", x);
+        if (proc->head->val.arrivaltime <= x)
+        {
+            struct PData process;
+            frontQ(proc, &process);
+            msgsnd(msq_id, &process, sizeof(struct PData), !IPC_NOWAIT);
+            dequeueQ(proc);
+            printf("Send process to scheduler at time %d\n", x);
+        }
     }
-
-    // 7. Clear clock resources
-    destroyClk(true);
+    struct PData process;
+    process.id = -1;
+    x = getClk();
+    msgsnd(msq_id, &process, sizeof(struct PData), !IPC_NOWAIT);
+    printf("Finish sending at time %d\n", x);
 
     // addition
-    wait(NULL);                            // for scheduler
-    for (int i = 0; i < process_nums; i++) // for processes
-    {
-        wait(NULL);
-    }
+    wait(NULL); // for scheduler
     wait(NULL); // for clk
-    return 0;
+    // 7. Clear clock resources
+    destroyClk(true);
+    raise(SIGINT);
 }
 
 void clearResources(int signum)
 {
     // TODO Clears all resources in case of interruption
-
     // for now
+    deleteQ(proc);
+    msgctl(msq_id, IPC_RMID, (struct msqid_ds *)0);
     exit(0);
 }
 
@@ -144,6 +125,7 @@ struct PQueue *readInputFile()
         fscanf(input_file, "%d\t%d\t%d\t%d\n", &data.id, &data.arrivaltime, &data.runningtime, &data.priority);
         data.remaintime = data.runningtime;
         data.waittime = 0;
+        data.pid = -1;
         enqueueQ(data, queue);
     }
     fclose(input_file);
@@ -197,4 +179,15 @@ int CountDigit(int x)
         x /= 10;
     }
     return ++count;
+}
+
+void initialResource()
+{
+    int msq_id_key = ftok("keyfile.txt", 'A');
+    msq_id = msgget(msq_id_key, IPC_CREAT | 0644);
+    if (msq_id == -1)
+    {
+        perror("Error in initializing message queue\n");
+        exit(-1);
+    }
 }
