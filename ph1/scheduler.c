@@ -6,6 +6,7 @@ int msq_id;
 bool stopRcv = false;    // stop receiving from process generator when receive process data with id = -1
 bool finishSched = true; // at first as ready queue is empty and there is no running process
 
+void mainLoop();
 void initialResource(); // create message queue
 void AddProcess(struct PData p);
 bool runSched();
@@ -31,18 +32,18 @@ int main(int argc, char *argv[])
     {
         priQueue = createPQ();
     }
-    
 
     intitateFiles();
 
-    
     mainLoop();
     // upon termination release the clock resources.
     destroyClk(true);
-    raise(SIGINT);
+    // raise(SIGINT);
+    killpg(getpgrp(), SIGINT);
 }
 
-void intitateFiles() {
+void intitateFiles()
+{
     logFile = fopen("scheduler.log.txt", "w");
     if (logFile == NULL)
     {
@@ -137,10 +138,13 @@ void PTerminate(int)
     {
     case RR:
         PTerminateRR();
+        break;
     case SRTN:
         PTerminateSRTN();
+        break;
     case HPF:
         PTerminateHPF();
+        break;
     default:
         break;
     }
