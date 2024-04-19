@@ -1,17 +1,18 @@
 #include "Algorithms.h"
 
 int algo = -1;
-int q = -1;
 int msq_id;
 
 bool stopRcv = false;    // stop receiving from process generator when receive process data with id = -1
 bool finishSched = true; // at first as ready queue is empty and there is no running process
 
+void mainLoop();
 void initialResource(); // create message queue
 void AddProcess(struct PData p);
 bool runSched();
 void ClearResou(int);
 void PTerminate(int);
+void intitateFiles();
 int CountDigit(int x); // count number of digits of integer to convert it to string
 
 int main(int argc, char *argv[])
@@ -24,30 +25,38 @@ int main(int argc, char *argv[])
     // TODO implement the scheduler :)
     if (algo == RR)
     {
-        q = atoi(argv[2]);
+        quantum = atoi(argv[2]);
         cirQueue = createCQ();
     }
     else
     {
         priQueue = createPQ();
     }
+
+    intitateFiles();
+
+    mainLoop();
+    // upon termination release the clock resources.
+    destroyClk(true);
+    // raise(SIGINT);
+    killpg(getpgrp(), SIGINT);
+}
+
+void intitateFiles()
+{
     logFile = fopen("scheduler.log.txt", "w");
     if (logFile == NULL)
     {
         perror("Can not open scheduler.log file\n");
         exit(-1);
     }
+    fprintf(logFile, "#At time x process y state arr w total z remain y wait k\n");
     prefFile = fopen("scheduler.pref.txt", "w");
     if (prefFile == NULL)
     {
         perror("Can not open scheduler.pref file\n");
         exit(-1);
     }
-    fprintf(logFile, "#At time x process y state arr w total z remain y wait k\n");
-    mainLoop();
-    // upon termination release the clock resources.
-    destroyClk(true);
-    raise(SIGINT);
 }
 
 void initialResource()
@@ -129,10 +138,13 @@ void PTerminate(int)
     {
     case RR:
         PTerminateRR();
+        break;
     case SRTN:
         PTerminateSRTN();
+        break;
     case HPF:
         PTerminateHPF();
+        break;
     default:
         break;
     }

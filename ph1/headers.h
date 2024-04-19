@@ -11,6 +11,9 @@
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
+#include <setjmp.h>
+
+jmp_buf exception_buffer;
 
 typedef short bool;
 #define true 1

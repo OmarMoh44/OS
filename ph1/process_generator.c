@@ -7,6 +7,9 @@ void SelAlgo();                 // read input from user to select algo and param
 int CountDigit(int x);          // count number of digits of integer to convert it to string
 void initialResource();         // create message queue
 
+void forkClockProcess(); // fork process to execute clk.out
+void forkSchedulerProcess(); // fork process to execute scheduler.out
+
 int algo = -1;
 int quantum = -1; // for only RR algo
 struct PQueue *proc;
@@ -25,43 +28,11 @@ int main(int argc, char *argv[])
     SelAlgo();
 
     // 3. Initiate and create the scheduler and clock processes.
-    pid_t clk_pid = fork();
-    if (clk_pid == -1)
-    {
-        perror("Error in forking process to execute clk\n");
-        exit(EXIT_FAILURE);
-    }
-    else if (clk_pid == 0)
-    {
-        execl("./clk.out", "clk.out", NULL);
-        perror("Error in executing clk.out\n");
-        exit(EXIT_FAILURE);
-    }
+    
+    forkClockProcess();
 
-    pid_t sched_pid = fork();
-    if (sched_pid == -1)
-    {
-        perror("Error in forking process to execute scheduler\n");
-        exit(EXIT_FAILURE);
-    }
-    else if (sched_pid == 0)
-    {
-        char st[2];
-        sprintf(st, "%d", algo); // convert algo to string to pass it for scheduler program
-        if (algo != 3)
-        {
-            execl("./scheduler.out", "scheduler.out", st, NULL);
-        }
-        else
-        {
-            char st2[CountDigit(quantum) + 2];
-            sprintf(st2, "%d", quantum); // convert quantum to string to pass it for scheduler program
-            execl("./scheduler.out", "scheduler.out", st, st2, NULL);
-        }
-
-        perror("Error in executing scheduler.out\n");
-        exit(EXIT_FAILURE);
-    }
+    forkSchedulerProcess();
+    
 
     // 4. Use this function after creating the clock process to initialize clock
     initClk();
@@ -96,6 +67,49 @@ int main(int argc, char *argv[])
     // 7. Clear clock resources
     destroyClk(true);
     raise(SIGINT);
+}
+
+
+void forkSchedulerProcess() {
+    pid_t sched_pid = fork();
+    if (sched_pid == -1)
+    {
+        perror("Error in forking process to execute scheduler\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (sched_pid == 0)
+    {
+        char st[2];
+        sprintf(st, "%d", algo); // convert algo to string to pass it for scheduler program
+        if (algo != 3)
+        {
+            execl("./scheduler.out", "scheduler.out", st, NULL);
+        }
+        else
+        {
+            char st2[CountDigit(quantum) + 2];
+            sprintf(st2, "%d", quantum); // convert quantum to string to pass it for scheduler program
+            execl("./scheduler.out", "scheduler.out", st, st2, NULL);
+        }
+
+        perror("Error in executing scheduler.out\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void forkClockProcess() {
+    pid_t clk_pid = fork();
+    if (clk_pid == -1)
+    {
+        perror("Error in forking process to execute clk\n");
+        exit(EXIT_FAILURE);
+    }
+    else if (clk_pid == 0)
+    {
+        execl("./clk.out", "clk.out", NULL);
+        perror("Error in executing clk.out\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void clearResources(int signum)
