@@ -393,3 +393,75 @@ void deletePQ(struct PPQueue *queue)
     }
     free(queue);
 }
+
+// A linked list node
+struct Node
+{
+    int data;
+    struct Node *next;
+};
+
+// The queue, front stores the front node of the linked list and rear stores the last node of the linked list
+struct Queue
+{
+    struct Node *front, *rear;
+    int count;
+};
+
+// A utility function to create a new linked list node.
+struct Node *newNode(int k)
+{
+    struct Node *temp = (struct Node *)malloc(sizeof(struct Node));
+    temp->data = k;
+    temp->next = NULL;
+    return temp;
+}
+
+// A utility function to create an empty queue
+struct Queue *createQueue()
+{
+    struct Queue *q = (struct Queue *)malloc(sizeof(struct Queue));
+    q->front = q->rear = NULL;
+    return q;
+}
+
+// The function to add a key k to the queue
+void enQueue(struct Queue *q, int k)
+{
+    // Create a new node
+    struct Node *temp = newNode(k);
+    q->count++;
+    // If queue is empty, then new node is front and rear both
+    if (q->rear == NULL)
+    {
+        q->front = q->rear = temp;
+        return;
+    }
+
+    // Add the new node at the end of the queue and change rear
+    q->rear->next = temp;
+    q->rear = temp;
+}
+
+// Function to remove a key from the queue
+// Function to remove a key from the queue and return the removed key
+int deQueue(struct Queue *q)
+{
+    // If queue is empty, return NULL.
+    if (q->front == NULL)
+        return -1;
+    q->count--;
+    // Store previous front and move front one node ahead
+    struct Node *temp = q->front;
+    int item = temp->data;
+
+    q->front = q->front->next;
+
+    // If front becomes NULL, then change rear also as NULL
+    if (q->front == NULL)
+        q->rear = NULL;
+
+    free(temp);
+
+    return item;
+}

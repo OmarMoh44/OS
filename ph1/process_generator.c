@@ -7,7 +7,7 @@ void SelAlgo();                 // read input from user to select algo and param
 int CountDigit(int x);          // count number of digits of integer to convert it to string
 void initialResource();         // create message queue
 
-void forkClockProcess(); // fork process to execute clk.out
+void forkClockProcess();     // fork process to execute clk.out
 void forkSchedulerProcess(); // fork process to execute scheduler.out
 
 int algo = -1;
@@ -28,11 +28,10 @@ int main(int argc, char *argv[])
     SelAlgo();
 
     // 3. Initiate and create the scheduler and clock processes.
-    
+
     forkClockProcess();
 
     forkSchedulerProcess();
-    
 
     // 4. Use this function after creating the clock process to initialize clock
     initClk();
@@ -69,8 +68,8 @@ int main(int argc, char *argv[])
     raise(SIGINT);
 }
 
-
-void forkSchedulerProcess() {
+void forkSchedulerProcess()
+{
     pid_t sched_pid = fork();
     if (sched_pid == -1)
     {
@@ -97,7 +96,8 @@ void forkSchedulerProcess() {
     }
 }
 
-void forkClockProcess() {
+void forkClockProcess()
+{
     pid_t clk_pid = fork();
     if (clk_pid == -1)
     {
