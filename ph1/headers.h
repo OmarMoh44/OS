@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <string.h>
 #include <setjmp.h>
+#include <math.h>
 
 jmp_buf exception_buffer;
 

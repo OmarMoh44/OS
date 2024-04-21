@@ -1,0 +1,4 @@
+CPU Utilization = 90.277779
+ Avg WTA = 1.333333
+ Avg WT = 34.333332
+ Std WTA = 0.471405
