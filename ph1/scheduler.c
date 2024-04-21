@@ -108,16 +108,16 @@ void AddProcess(struct PData p)
     kill(x, SIGTSTP);
 }
 
-bool runSched()
+bool runSched(int x)
 {
     switch (algo)
     {
     case RR:
-        return runRR();
+        return runRR(x);
     case SRTN:
-        return runSRTN();
+        return runSRTN(x);
     case HPF:
-        return runHPF();
+        return runHPF(x);
     default:
         break;
     }
@@ -165,8 +165,10 @@ void mainLoop()
 {
     while (!stopRcv || !finishSched)
     {
+       
         struct PData process;
         int rcv = msgrcv(msq_id, &process, sizeof(struct PData), 0, IPC_NOWAIT);
+        int x = getClk();
         if (rcv == -1)
         {
         }
@@ -177,13 +179,13 @@ void mainLoop()
         }
         else
         {
-            int x = getClk();
+            
             printf("Receive process at time %d\n", x);
             process.state = arrived;
             AddProcess(process);
             continue;
         }
-        finishSched = runSched();
+        finishSched = runSched(x);
     }
     printf("OUT of main loop in scheduler\n");
 }

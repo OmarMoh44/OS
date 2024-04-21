@@ -4,8 +4,8 @@ struct PPQueue *priQueue;
 struct PData *runningProcess = NULL;
 int quantum, remainingQuantum;
 FILE *logFile, *prefFile;
-
-void logProcessInfo(struct PData *p);
+int lastClock;
+void logProcessInfo(struct PData *p,int x);
 
 void writeOutput()
 {
@@ -24,7 +24,7 @@ void writeOutput()
 }
 
 /*    HPF      */
-bool runHPF()
+bool runHPF(int x)
 {
     if (runningProcess == NULL && priQueue->count == 0)
     {
@@ -37,10 +37,9 @@ bool runHPF()
         dequeuePQ(priQueue);
         runningProcess->state = started;
         kill(runningProcess->pid, SIGCONT);
-        int x = getClk();
         printf("Wake up process %d at time %d\n", runningProcess->id, x);
         runningProcess->waittime = x - runningProcess->arrivaltime;
-        logProcessInfo(runningProcess);
+        logProcessInfo(runningProcess,x);
     }
     return false;
 }
@@ -50,25 +49,81 @@ void PTerminateHPF()
     runningProcess->state = finished;
     int x = getClk();
     printf("Terminate process %d at time %d\n", runningProcess->id, x);
-    logProcessInfo(runningProcess);
+    logProcessInfo(runningProcess,x);
     free(runningProcess);
     runningProcess = NULL;
 }
 
+
+
 /*    SRTN          */
-bool runSRTN()
+bool runSRTN(int x)
 {
+    if (runningProcess == NULL && priQueue->count == 0)
+    {
+        return true;
+    }
+    if (runningProcess == NULL){
+        runningProcess = malloc(sizeof(struct PData));
+        frontPQ(priQueue, runningProcess);
+        dequeuePQ(priQueue);
+        if(runningProcess->state==arrived){
+            printf("Wake up process %d at time %d\n", runningProcess->id, x);
+            runningProcess->state = started;
+            runningProcess->waittime = x - runningProcess->arrivaltime;
+        }else if(runningProcess->state==stopped){
+            printf("Resume process %d at time %d\n", runningProcess->id, x);
+            runningProcess->state = resumed;
+        }
+        lastClock = x;
+        kill(runningProcess->pid, SIGCONT);
+        logProcessInfo(runningProcess,x);
+        
+    }else{
+       if(lastClock==x){
+        return false;
+       }
+        lastClock=x;
+        runningProcess->remaintime--;
+        struct PData *gProcess = NULL;
+        gProcess = malloc(sizeof(struct PData));
+        frontPQ(priQueue, gProcess);
+        if( priQueue->count == 0 ||(priQueue->count != 0)&&(runningProcess->remaintime <= gProcess->remaintime)){
+            return false;
+        }else{
+            if (runningProcess->remaintime == 0)
+            {
+                free(gProcess);
+                return false;
+            }
+            printf("Stop process %d at time %d\n", runningProcess->id, x);
+            runningProcess->state = stopped;
+            logProcessInfo(runningProcess,x);
+            kill(runningProcess->pid, SIGSTOP);
+            enqueuePQ(*runningProcess,runningProcess->remaintime, priQueue);
+            free(runningProcess);
+            runningProcess = NULL;
+        }
+        free(gProcess);
+    }
+    return false;
 }
 
 void PTerminateSRTN()
 {
+    runningProcess->state = finished;
+    int x = getClk();
+    printf("Terminate process %d at time %d\n", runningProcess->id, x);
+    logProcessInfo(runningProcess,x);
+    struct PData *temp = runningProcess;
+    runningProcess = NULL;
+    free(temp);
 }
 
-int lastClock;
 /*    RR      */
-bool runRR()
+bool runRR(int x)
 {
-    int x = getClk();
+   
 
     // if there is no ruunning process
     // happens after termination of a process and at first time
@@ -104,7 +159,7 @@ bool runRR()
             runningProcess->state = resumed;
         }
         kill(runningProcess->pid, SIGCONT);
-        logProcessInfo(runningProcess);
+        logProcessInfo(runningProcess,x);
     }
     else
     {
@@ -120,7 +175,7 @@ bool runRR()
             // stop the process
             printf("Stop process %d at time %d\n", runningProcess->id, x);
             runningProcess->state = stopped;
-            logProcessInfo(runningProcess);
+            logProcessInfo(runningProcess,x);
             kill(runningProcess->pid, SIGSTOP);
 
             // add the process to the queue
@@ -132,14 +187,14 @@ bool runRR()
         {
 
             // decrement the quantum
-            if (lastClock != getClk())
+            if (lastClock != x)
             {
                 if (runningProcess != NULL)
                 {
                     runningProcess->remaintime--;
                 }
                 remainingQuantum--;
-                lastClock = getClk();
+                lastClock = x;
             }
         }
     }
@@ -151,15 +206,14 @@ void PTerminateRR()
     runningProcess->state = finished;
     int x = getClk();
     printf("Terminate process %d at time %d\n", runningProcess->id, x);
-    logProcessInfo(runningProcess);
+    logProcessInfo(runningProcess,x);
     struct PData *temp = runningProcess;
     runningProcess = NULL;
     free(temp);
 }
 
-void logProcessInfo(struct PData *p)
+void logProcessInfo(struct PData *p,int x)
 {
-    int x = getClk();
     int wait = x - p->arrivaltime - p->runningtime + p->remaintime;
     switch (p->state)
     {
