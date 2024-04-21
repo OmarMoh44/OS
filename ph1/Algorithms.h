@@ -80,15 +80,14 @@ bool runSRTN(int x)
         logProcessInfo(runningProcess,x);
         
     }else{
-       if(lastClock==x){
-        return false;
-       }
+       if(lastClock!=x){
         lastClock=x;
         runningProcess->remaintime--;
+       }
         struct PData *gProcess = NULL;
         gProcess = malloc(sizeof(struct PData));
         frontPQ(priQueue, gProcess);
-        if( priQueue->count == 0 ||(priQueue->count != 0)&&(runningProcess->remaintime <= gProcess->remaintime)){
+        if( priQueue->count == 0 ||(priQueue->count != 0)&& (runningProcess->remaintime <= gProcess->remaintime)){
             return false;
         }else{
             if (runningProcess->remaintime == 0)
@@ -106,6 +105,7 @@ bool runSRTN(int x)
         }
         free(gProcess);
     }
+    
     return false;
 }
 
