@@ -5,7 +5,6 @@ int msq_id;
 
 bool stopRcv = false;    // stop receiving from process generator when receive process data with id = -1
 bool finishSched = true; // at first as ready queue is empty and there is no running process
-
 void mainLoop();
 void initialResource(); // create message queue
 void AddProcess(struct PData p);
@@ -17,6 +16,9 @@ int CountDigit(int x); // count number of digits of integer to convert it to str
 
 int main(int argc, char *argv[])
 {
+    WTAQ.front = NULL;
+    WTAQ.rear = NULL;
+    WTAQ.count = 0;
     signal(SIGINT, ClearResou);  // free queues at end of program
     signal(SIGUSR1, PTerminate); // handler action when process terminate and notify parent
     initialResource();
@@ -34,7 +36,6 @@ int main(int argc, char *argv[])
     }
 
     intitateFiles();
-
     mainLoop();
     // upon termination release the clock resources.
     destroyClk(true);
@@ -180,10 +181,24 @@ void mainLoop()
             int x = getClk();
             printf("Receive process at time %d\n", x);
             process.state = arrived;
+            sumRT += process.runningtime;
             AddProcess(process);
             continue;
         }
         finishSched = runSched();
     }
+    float avgWTA = (float)sumWTA / (float)WTAQ.count;
+    float avgWT = (float)sumWT / (float)WTAQ.count;
+    float SD = 0;
+    int tempCount = WTAQ.count;
+    float cpuUTI = (float)sumRT / (float)getClk() * 100;
+    while (WTAQ.count != 0)
+    {
+        int x = deQueue(&WTAQ);
+        SD += pow(x - avgWTA, 2);
+    }
+    SD = sqrt(SD / tempCount);
+
+    fprintf(prefFile, "CPU Utilization = %f%% \nAvg WTA = %f\nAvg WT = %f\nStd WTA = %f\n", cpuUTI, avgWTA, avgWT, SD);
     printf("OUT of main loop in scheduler\n");
 }

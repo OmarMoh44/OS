@@ -7,8 +7,17 @@ FILE *logFile, *prefFile;
 
 void logProcessInfo(struct PData *p);
 
+int processCount = 0;
+int sumWT = 0;
+int sumWTA = 0;
+int AvgWTA = 0;
+int AvgWT = 0;
+int sumRT = 0;
+struct Queue WTAQ;
+
 void writeOutput()
 {
+
     logFile = fopen("scheduler.log.txt", "w");
     if (logFile == NULL)
     {
@@ -182,6 +191,9 @@ void logProcessInfo(struct PData *p)
     case 4: // finished
         int TA = x - p->arrivaltime;
         float WTA = (TA + 0.0) / p->runningtime;
+        sumWTA += WTA;
+        sumWT += wait;
+        enQueue(&WTAQ, WTA);
         fprintf(logFile, "At time %d process %d finished arr %d total %d remain 0 wait %d TA %d WTA %.2f\n",
                 x, p->id, p->arrivaltime, p->runningtime, wait, TA, WTA);
         break;
