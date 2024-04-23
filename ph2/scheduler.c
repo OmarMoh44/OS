@@ -16,6 +16,7 @@ int CountDigit(int x); // count number of digits of integer to convert it to str
 
 int main(int argc, char *argv[])
 {
+    createTree();
     WTAQ.front = NULL;
     WTAQ.rear = NULL;
     WTAQ.count = 0;
@@ -23,6 +24,8 @@ int main(int argc, char *argv[])
     signal(SIGUSR1, PTerminate); // handler action when process terminate and notify parent
     initialResource();
     initClk();
+
+    waitingQueue = createPQ();
     algo = atoi(argv[1]);
     // TODO implement the scheduler :)
     if (algo == RR)
@@ -34,6 +37,8 @@ int main(int argc, char *argv[])
     {
         priQueue = createPQ();
     }
+
+    printf("Scheduler start\n");
 
     intitateFiles();
     mainLoop();
@@ -73,6 +78,18 @@ void initialResource()
 
 void AddProcess(struct PData p)
 {
+
+    // allocate memory
+    bool canAllocate = allocateMemory(&p);
+
+    if(!canAllocate) {
+        printf("Process %d can't allocate memory waiting\n", p.id);
+        // add to waiting list
+        enqueuePQ(p, p.memorySize, waitingQueue);
+        return;
+    } 
+    
+
     char st[CountDigit(p.runningtime) + 2];
     sprintf(st, "%d", p.runningtime); // convert runningtime to string to pass it for process program
     pid_t x = fork();
@@ -109,6 +126,8 @@ void AddProcess(struct PData p)
     kill(x, SIGTSTP);
 }
 
+
+
 bool runSched(int x)
 {
     switch (algo)
@@ -135,6 +154,9 @@ void ClearResou(int)
 
 void PTerminate(int)
 {
+    // remove the process from the memory
+    deallocateMemory(runningProcess);
+
     switch (algo)
     {
     case RR:
@@ -149,6 +171,14 @@ void PTerminate(int)
     default:
         break;
     }
+
+if(waitingQueue->count != 0) {
+    // take one from waiting list and try to add it
+    struct PData* p = malloc(sizeof(struct PData));
+    frontPQ(waitingQueue, p);
+    dequeuePQ(waitingQueue);
+    AddProcess(*p);
+}
 }
 
 int CountDigit(int x)
@@ -164,9 +194,11 @@ int CountDigit(int x)
 
 void mainLoop()
 {
-    while (!stopRcv || !finishSched)
+
+    
+
+    while (!stopRcv || !finishSched || waitingQueue->count != 0)
     {
-       
         struct PData process;
         int rcv = msgrcv(msq_id, &process, sizeof(struct PData), 0, IPC_NOWAIT);
         int x = getClk();
@@ -182,6 +214,7 @@ void mainLoop()
         {
             
             printf("Receive process at time %d\n", x);
+            printf(" process memory %d\n", process.memorySize);
             process.state = arrived;
             sumRT += process.runningtime;
             AddProcess(process);
