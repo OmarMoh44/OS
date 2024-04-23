@@ -1,4 +1,6 @@
-#include "DataStructure.h"
+#include "Memory.h"
+
+
 struct PCQueue *cirQueue;
 struct PPQueue *priQueue;
 struct PData *runningProcess = NULL;

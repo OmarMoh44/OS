@@ -1,5 +1,8 @@
 #include "headers.h"
 
+// int leafNodesCount = 0;
+// struct TreeNode * leafNodes[128];
+
 enum Algo
 {
     HPF = 1,
@@ -16,9 +19,23 @@ enum State
     finished = 4
 };
 
+struct TreeNode {
+    int i;
+    int j;
+    struct TreeNode * left;
+    struct TreeNode * right;
+    struct TreeNode * parent;
+    bool allocated;
+    int size;
+};
+
 struct PData
 {
+    struct TreeNode * memoryNode;
     int id; // id of process in system
+    int memorySize;
+    int memoryStart;
+    int memoryEnd;
     int arrivaltime;
     int runningtime;
     int priority;
@@ -42,6 +59,10 @@ struct PQueue
     struct PNode *tail;
     int count;
 };
+
+
+
+
 
 struct PQueue *createQ()
 {

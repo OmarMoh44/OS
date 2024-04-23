@@ -136,10 +136,13 @@ struct PQueue *readInputFile()
     while (!feof(input_file))
     {
         struct PData data;
-        fscanf(input_file, "%d\t%d\t%d\t%d\n", &data.id, &data.arrivaltime, &data.runningtime, &data.priority);
+        fscanf(input_file, "%d\t%d\t%d\t%d\t%d\n", &data.id, &data.arrivaltime, &data.runningtime, &data.priority, &data.memorySize);
         data.remaintime = data.runningtime;
         data.waittime = 0;
+        data.memoryStart = -1;
+        data.memoryEnd = -1;
         data.pid = -1;
+        printf("memsize : %d\n", data.memorySize);
         enqueueQ(data, queue);
     }
     fclose(input_file);

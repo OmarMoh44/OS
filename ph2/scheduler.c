@@ -16,6 +16,7 @@ int CountDigit(int x); // count number of digits of integer to convert it to str
 
 int main(int argc, char *argv[])
 {
+    createTree(memoryRoot);
     WTAQ.front = NULL;
     WTAQ.rear = NULL;
     WTAQ.count = 0;
@@ -34,6 +35,8 @@ int main(int argc, char *argv[])
     {
         priQueue = createPQ();
     }
+
+    printf("Scheduler start\n");
 
     intitateFiles();
     mainLoop();
@@ -73,6 +76,13 @@ void initialResource()
 
 void AddProcess(struct PData p)
 {
+
+    // allocate memory
+    allocateMemory(&p);
+
+    // if returned 0  add to waiting list
+    
+
     char st[CountDigit(p.runningtime) + 2];
     sprintf(st, "%d", p.runningtime); // convert runningtime to string to pass it for process program
     pid_t x = fork();
@@ -164,9 +174,11 @@ int CountDigit(int x)
 
 void mainLoop()
 {
+
+    
+
     while (!stopRcv || !finishSched)
     {
-       
         struct PData process;
         int rcv = msgrcv(msq_id, &process, sizeof(struct PData), 0, IPC_NOWAIT);
         int x = getClk();
@@ -182,6 +194,7 @@ void mainLoop()
         {
             
             printf("Receive process at time %d\n", x);
+            printf(" process memory %d\n", process.memorySize);
             process.state = arrived;
             sumRT += process.runningtime;
             AddProcess(process);
