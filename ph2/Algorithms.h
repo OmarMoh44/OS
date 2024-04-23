@@ -3,6 +3,7 @@
 
 struct PCQueue *cirQueue;
 struct PPQueue *priQueue;
+struct PPQueue *waitingQueue;
 struct PData *runningProcess = NULL;
 int quantum, remainingQuantum;
 FILE *logFile, *prefFile;

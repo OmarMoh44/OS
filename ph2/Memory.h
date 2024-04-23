@@ -1,19 +1,20 @@
 #include "DataStructure.h" // Include your header file here
 
+#define THRESHOLD 8
+
 void updateParent(struct TreeNode *node);
 
 struct TreeNode *memoryRoot;
 
-void createTree(struct TreeNode *node) {
-    printf("intitate Tree");
-    node = (struct TreeNode *)malloc(sizeof(struct TreeNode));
-    node->i = 0;
-    node->j = 1023;
-    node->size = 1024;
-    node->left = NULL;
-    node->right = NULL;
-    node->parent = NULL;
-    node->allocated = false;
+void createTree() {
+    memoryRoot = (struct TreeNode *)malloc(sizeof(struct TreeNode));
+    memoryRoot->i = 0;
+    memoryRoot->j = 1023;
+    memoryRoot->size = 1024;
+    memoryRoot->left = NULL;
+    memoryRoot->right = NULL;
+    memoryRoot->parent = NULL;
+    memoryRoot->allocated = false;
 }
 
 struct TreeNode *splitTree(struct TreeNode *node) {
@@ -40,55 +41,88 @@ struct TreeNode *splitTree(struct TreeNode *node) {
     return node;
 }
 
-void findSmallestRec(struct TreeNode ** smallestNode, struct TreeNode *node, int size) {
-    if (node == NULL || node->allocated) return;
+struct TreeNode *findSmallestRec(struct TreeNode *node, int size)
+{
+    if (node == NULL || node->allocated)
+        return NULL;
 
-    if (node->left == NULL && node->right == NULL) {
-        if(node->size >= size ) {
-            if(!(*smallestNode)) {
-                *smallestNode = node;
-            } else if (node->size < (*smallestNode)->size) {
-                *smallestNode = node;
-            }
+    if (node->left == NULL && node->right == NULL)
+    {
+        if (node->size >= size)
+        {
+
+            return node;
         }
-        return;
+        return NULL;
     }
 
-    findSmallestRec(smallestNode, node->left, size);
-    findSmallestRec(smallestNode, node->right, size);
+    struct TreeNode *leftSmallest = findSmallestRec(node->left, size);
+    struct TreeNode *rightSmallest = findSmallestRec(node->right, size);
+
+    if (leftSmallest == NULL)
+    {
+        return rightSmallest;
+    }
+    else if (rightSmallest == NULL)
+    {
+        return leftSmallest;
+    }
+    else
+    {
+        return leftSmallest->size < rightSmallest->size ? leftSmallest : rightSmallest;
+    }
 }
 
-bool allocateMemory(struct PData *process) {
+struct TreeNode * findByMemoryRange(int i, int j, struct TreeNode *node) {
+    if (node == NULL) {
+        return NULL;
+    }
+    if (node->i == i && node->j == j) {
+        return node;
+    }
+    struct TreeNode *left = findByMemoryRange(i, j, node->left);
+    struct TreeNode *right = findByMemoryRange(i, j, node->right);
+    return left ? left : right;
+
+}
+
+bool allocateMemory(struct PData *process)
+{
     printf("start node %d %d\n", process->id, process->memorySize);
     // allocate memory
-    struct TreeNode * smallestNode = NULL;
-    findSmallestRec(&smallestNode, memoryRoot, process->memorySize);
-    if (smallestNode == NULL) {
+    struct TreeNode *smallestNode = NULL;
+    smallestNode = findSmallestRec(memoryRoot, process->memorySize);
+    if (smallestNode == NULL)
+    {
         printf("no smallest node %d\n", process->id);
         return false;
-    } else {
+    }
+    else
+    {
         printf("found smallest node %d\n", process->id);
     }
 
-    if ((smallestNode->size / 2) >= process->memorySize) {
+    if ((smallestNode->size / 2) >= process->memorySize && (smallestNode->size / 2) >= THRESHOLD)
+    {
         printf("splitting smallest node %d\n", process->id);
         splitTree(smallestNode);
 
         struct TreeNode *node = smallestNode->left;
-        while (node->size / 2 >= process->memorySize) {
+        while (node->size / 2 >= process->memorySize && node->size / 2 >= THRESHOLD)
+        {
             splitTree(node);
             node = node->left;
         }
         node->allocated = true;
         process->memoryStart = node->i;
         process->memoryEnd = node->j;
-        process->memoryNode = node;
-    } else {
+    }
+    else
+    {
         printf("using smallest node %d\n", process->id);
         smallestNode->allocated = true;
         process->memoryStart = smallestNode->i;
         process->memoryEnd = smallestNode->j;
-        process->memoryNode = smallestNode;
         updateParent(smallestNode);
     }
 
@@ -97,8 +131,25 @@ bool allocateMemory(struct PData *process) {
     return true;
 }
 
+void printMemoryRec(struct TreeNode *node) {
+    if (node == NULL) {
+        return;
+    }
+    printMemoryRec(node->left);
+    printf("Node %d %d %d %d\n", node->i, node->j, node->size, node->allocated);
+    printMemoryRec(node->right);
+}
+
+void printMemory() {
+    printf("Printing Memory\n");
+    printMemoryRec(memoryRoot);
+}
+
+
+
 void mergeNodes(struct TreeNode *parent) {
-    while (parent && !parent->left->allocated && !parent->right->allocated) {
+    while (parent != NULL && !parent->left->allocated && !parent->right->allocated) {
+        printf("Merging nodes\n");
         free(parent->left);
         free(parent->right);
         parent->left = NULL;
@@ -108,13 +159,22 @@ void mergeNodes(struct TreeNode *parent) {
     }
 }
 
-void deallocate(struct PData *process) {
+void deallocateMemory(struct PData *process) {
     printf("Memory freed for process %d from %d to %d\n", process->id, process->memoryStart, process->memoryEnd);
     // deallocate memory
-    struct TreeNode *memoryNode = process->memoryNode;
+    struct TreeNode *memoryNode = findByMemoryRange(process->memoryStart, process->memoryEnd, memoryRoot);
+    printf("Omar \n");
+    if(memoryNode != NULL) {
+     
     memoryNode->allocated = false;
+    updateParent(memoryNode);
     // merge nodes
+    printf("Before Merging nodes\n");
     mergeNodes(memoryNode->parent);
+       
+    } else {
+        printMemory();
+    }
 }
 
 void updateParent(struct TreeNode *node) {

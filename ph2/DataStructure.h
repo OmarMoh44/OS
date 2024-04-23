@@ -31,7 +31,7 @@ struct TreeNode {
 
 struct PData
 {
-    struct TreeNode * memoryNode;
+    // struct TreeNode * memoryNode;
     int id; // id of process in system
     int memorySize;
     int memoryStart;
