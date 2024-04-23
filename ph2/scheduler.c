@@ -13,7 +13,7 @@ void ClearResou(int);
 void PTerminate(int);
 void intitateFiles();
 int CountDigit(int x); // count number of digits of integer to convert it to string
-
+FILE *memoryfile;
 int main(int argc, char *argv[])
 {
     createTree();
@@ -49,7 +49,16 @@ int main(int argc, char *argv[])
 }
 
 void intitateFiles()
-{
+{   
+    memoryfile=fopen("memory.log.txt", "w");
+    if (memoryfile == NULL)
+    {
+        perror("Can not open memory.log file\n");
+        exit(-1);
+    }
+    
+    fprintf(memoryfile, "#At time x allocated y bytes for process z from i to j\n");
+
     logFile = fopen("scheduler.log.txt", "w");
     if (logFile == NULL)
     {
@@ -81,15 +90,16 @@ void AddProcess(struct PData p)
 
     // allocate memory
     bool canAllocate = allocateMemory(&p);
-
-    if(!canAllocate) {
+   if(!canAllocate) {
         printf("Process %d can't allocate memory waiting\n", p.id);
         // add to waiting list
         enqueuePQ(p, p.memorySize, waitingQueue);
         return;
     } 
-    
-
+    int y=getClk();
+   
+    fprintf(memoryfile,"At time %d allocated %d bytes from process %d from %d to %d\n",y,p.memorySize,p.id,p.memoryStart,p.memoryEnd);
+     
     char st[CountDigit(p.runningtime) + 2];
     sprintf(st, "%d", p.runningtime); // convert runningtime to string to pass it for process program
     pid_t x = fork();
@@ -149,6 +159,7 @@ void ClearResou(int)
     free(cirQueue);
     fclose(logFile);
     fclose(prefFile);
+    fclose(memoryfile);
     exit(0);
 }
 
@@ -156,6 +167,9 @@ void PTerminate(int)
 {
     // remove the process from the memory
     deallocateMemory(runningProcess);
+    int x=getClk();
+
+    fprintf( memoryfile,"At time %d freed %d bytes from process %d from %d to %d\n",x,runningProcess->memorySize,runningProcess->id,runningProcess->memoryStart,runningProcess->memoryEnd);
 
     switch (algo)
     {
