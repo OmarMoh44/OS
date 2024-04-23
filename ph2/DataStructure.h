@@ -25,7 +25,7 @@ struct TreeNode {
     struct TreeNode * left;
     struct TreeNode * right;
     struct TreeNode * parent;
-    bool allocated;
+    int allocated;  //0-> deallocated, 1->half allocated, 2->total allocated
     int size;
 };
 
