@@ -81,6 +81,7 @@ bool runSRTN(int x)
         gProcess = malloc(sizeof(struct PData));
         frontPQ(priQueue, gProcess);
         if( priQueue->count == 0 ||(priQueue->count != 0)&& (runningProcess->remaintime <= gProcess->remaintime)){
+            free(gProcess);
             return false;
         }else{
             if (runningProcess->remaintime == 0)
