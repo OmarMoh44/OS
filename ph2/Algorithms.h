@@ -1,6 +1,5 @@
 #include "Memory.h"
 
-
 struct PCQueue *cirQueue;
 struct PPQueue *priQueue;
 struct PPQueue *waitingQueue;
@@ -8,7 +7,7 @@ struct PData *runningProcess = NULL;
 int quantum, remainingQuantum;
 FILE *logFile, *prefFile;
 int lastClock;
-void logProcessInfo(struct PData *p,int x);
+void logProcessInfo(struct PData *p, int x);
 
 int processCount = 0;
 int sumWT = 0;
@@ -17,23 +16,6 @@ int AvgWTA = 0;
 int AvgWT = 0;
 int sumRT = 0;
 struct Queue WTAQ;
-
-void writeOutput()
-{
-
-    logFile = fopen("scheduler.log.txt", "w");
-    if (logFile == NULL)
-    {
-        perror("Can not open scheduler.log file\n");
-        exit(-1);
-    }
-    prefFile = fopen("scheduler.pref.txt", "w");
-    if (prefFile == NULL)
-    {
-        perror("Can not open scheduler.pref file\n");
-        exit(-1);
-    }
-}
 
 /*    HPF      */
 bool runHPF(int x)
@@ -51,7 +33,7 @@ bool runHPF(int x)
         kill(runningProcess->pid, SIGCONT);
         printf("Wake up process %d at time %d\n", runningProcess->id, x);
         runningProcess->waittime = x - runningProcess->arrivaltime;
-        logProcessInfo(runningProcess,x);
+        logProcessInfo(runningProcess, x);
     }
     return false;
 }
@@ -60,13 +42,12 @@ void PTerminateHPF()
 {
     runningProcess->state = finished;
     int x = getClk();
+    runningProcess->remaintime = 0;
     printf("Terminate process %d at time %d\n", runningProcess->id, x);
-    logProcessInfo(runningProcess,x);
+    logProcessInfo(runningProcess, x);
     free(runningProcess);
     runningProcess = NULL;
 }
-
-
 
 /*    SRTN          */
 bool runSRTN(int x)
@@ -75,33 +56,42 @@ bool runSRTN(int x)
     {
         return true;
     }
-    if (runningProcess == NULL){
+    if (runningProcess == NULL)
+    {
         runningProcess = malloc(sizeof(struct PData));
         frontPQ(priQueue, runningProcess);
         dequeuePQ(priQueue);
-        if(runningProcess->state==arrived){
+        if (runningProcess->state == arrived)
+        {
             printf("Wake up process %d at time %d\n", runningProcess->id, x);
             runningProcess->state = started;
             runningProcess->waittime = x - runningProcess->arrivaltime;
-        }else if(runningProcess->state==stopped){
+        }
+        else if (runningProcess->state == stopped)
+        {
             printf("Resume process %d at time %d\n", runningProcess->id, x);
             runningProcess->state = resumed;
         }
         lastClock = x;
         kill(runningProcess->pid, SIGCONT);
-        logProcessInfo(runningProcess,x);
-        
-    }else{
-       if(lastClock!=x){
-        lastClock=x;
-        runningProcess->remaintime--;
-       }
+        logProcessInfo(runningProcess, x);
+    }
+    else
+    {
+        if (lastClock != x)
+        {
+            lastClock = x;
+            runningProcess->remaintime--;
+        }
         struct PData *gProcess = NULL;
         gProcess = malloc(sizeof(struct PData));
         frontPQ(priQueue, gProcess);
-        if( priQueue->count == 0 ||(priQueue->count != 0)&& (runningProcess->remaintime <= gProcess->remaintime)){
+        if (priQueue->count == 0 || (priQueue->count != 0) && (runningProcess->remaintime <= gProcess->remaintime))
+        {
             return false;
-        }else{
+        }
+        else
+        {
             if (runningProcess->remaintime == 0)
             {
                 free(gProcess);
@@ -109,15 +99,15 @@ bool runSRTN(int x)
             }
             printf("Stop process %d at time %d\n", runningProcess->id, x);
             runningProcess->state = stopped;
-            logProcessInfo(runningProcess,x);
+            logProcessInfo(runningProcess, x);
             kill(runningProcess->pid, SIGSTOP);
-            enqueuePQ(*runningProcess,runningProcess->remaintime, priQueue);
+            enqueuePQ(*runningProcess, runningProcess->remaintime, priQueue);
             free(runningProcess);
             runningProcess = NULL;
         }
         free(gProcess);
     }
-    
+
     return false;
 }
 
@@ -126,7 +116,7 @@ void PTerminateSRTN()
     runningProcess->state = finished;
     int x = getClk();
     printf("Terminate process %d at time %d\n", runningProcess->id, x);
-    logProcessInfo(runningProcess,x);
+    logProcessInfo(runningProcess, x);
     struct PData *temp = runningProcess;
     runningProcess = NULL;
     free(temp);
@@ -135,7 +125,6 @@ void PTerminateSRTN()
 /*    RR      */
 bool runRR(int x)
 {
-   
 
     // if there is no ruunning process
     // happens after termination of a process and at first time
@@ -171,7 +160,7 @@ bool runRR(int x)
             runningProcess->state = resumed;
         }
         kill(runningProcess->pid, SIGCONT);
-        logProcessInfo(runningProcess,x);
+        logProcessInfo(runningProcess, x);
     }
     else
     {
@@ -187,7 +176,7 @@ bool runRR(int x)
             // stop the process
             printf("Stop process %d at time %d\n", runningProcess->id, x);
             runningProcess->state = stopped;
-            logProcessInfo(runningProcess,x);
+            logProcessInfo(runningProcess, x);
             kill(runningProcess->pid, SIGSTOP);
 
             // add the process to the queue
@@ -218,13 +207,13 @@ void PTerminateRR()
     runningProcess->state = finished;
     int x = getClk();
     printf("Terminate process %d at time %d\n", runningProcess->id, x);
-    logProcessInfo(runningProcess,x);
+    logProcessInfo(runningProcess, x);
     struct PData *temp = runningProcess;
     runningProcess = NULL;
     free(temp);
 }
 
-void logProcessInfo(struct PData *p,int x)
+void logProcessInfo(struct PData *p, int x)
 {
     int wait = x - p->arrivaltime - p->runningtime + p->remaintime;
     switch (p->state)

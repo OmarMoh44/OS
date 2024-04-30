@@ -19,13 +19,14 @@ enum State
     finished = 4
 };
 
-struct TreeNode {
+struct TreeNode
+{
     int i;
     int j;
-    struct TreeNode * left;
-    struct TreeNode * right;
-    struct TreeNode * parent;
-    int allocated;  //0-> deallocated, 1->half allocated, 2->total allocated
+    struct TreeNode *left;
+    struct TreeNode *right;
+    struct TreeNode *parent;
+    int allocated; // 0-> deallocated, 1->half allocated, 2->total allocated
     int size;
 };
 
@@ -59,10 +60,6 @@ struct PQueue
     struct PNode *tail;
     int count;
 };
-
-
-
-
 
 struct PQueue *createQ()
 {

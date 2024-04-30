@@ -8,7 +8,7 @@ bool finishSched = true; // at first as ready queue is empty and there is no run
 void mainLoop();
 void initialResource(); // create message queue
 void AddProcess(struct PData p);
-bool runSched();
+bool runSched(int x);
 void ClearResou(int);
 void PTerminate(int);
 void intitateFiles();
@@ -45,14 +45,14 @@ int main(int argc, char *argv[])
 
 void intitateFiles()
 {
-    logFile = fopen("scheduler.log.txt", "w");
+    logFile = fopen("scheduler.log", "w");
     if (logFile == NULL)
     {
         perror("Can not open scheduler.log file\n");
         exit(-1);
     }
     fprintf(logFile, "#At time x process y state arr w total z remain y wait k\n");
-    prefFile = fopen("scheduler.pref.txt", "w");
+    prefFile = fopen("scheduler.pref", "w");
     if (prefFile == NULL)
     {
         perror("Can not open scheduler.pref file\n");

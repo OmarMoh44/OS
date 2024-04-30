@@ -15,23 +15,6 @@ int AvgWT = 0;
 int sumRT = 0;
 struct Queue WTAQ;
 
-void writeOutput()
-{
-
-    logFile = fopen("scheduler.log.txt", "w");
-    if (logFile == NULL)
-    {
-        perror("Can not open scheduler.log file\n");
-        exit(-1);
-    }
-    prefFile = fopen("scheduler.pref.txt", "w");
-    if (prefFile == NULL)
-    {
-        perror("Can not open scheduler.pref file\n");
-        exit(-1);
-    }
-}
-
 /*    HPF      */
 bool runHPF(int x)
 {
@@ -57,6 +40,7 @@ void PTerminateHPF()
 {
     runningProcess->state = finished;
     int x = getClk();
+    runningProcess->remaintime = 0;
     printf("Terminate process %d at time %d\n", runningProcess->id, x);
     logProcessInfo(runningProcess,x);
     free(runningProcess);

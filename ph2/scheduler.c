@@ -7,8 +7,8 @@ bool stopRcv = false;    // stop receiving from process generator when receive p
 bool finishSched = true; // at first as ready queue is empty and there is no running process
 void mainLoop();
 void initialResource(); // create message queue
-void AddProcess(struct PData p);
-bool runSched();
+bool AddProcess(struct PData p);
+bool runSched(int x);
 void ClearResou(int);
 void PTerminate(int);
 void intitateFiles();
@@ -49,24 +49,24 @@ int main(int argc, char *argv[])
 }
 
 void intitateFiles()
-{   
-    memoryfile=fopen("memory.log.txt", "w");
+{
+    memoryfile = fopen("memory.log", "w");
     if (memoryfile == NULL)
     {
         perror("Can not open memory.log file\n");
         exit(-1);
     }
-    
+
     fprintf(memoryfile, "#At time x allocated y bytes for process z from i to j\n");
 
-    logFile = fopen("scheduler.log.txt", "w");
+    logFile = fopen("scheduler.log", "w");
     if (logFile == NULL)
     {
         perror("Can not open scheduler.log file\n");
         exit(-1);
     }
     fprintf(logFile, "#At time x process y state arr w total z remain y wait k\n");
-    prefFile = fopen("scheduler.pref.txt", "w");
+    prefFile = fopen("scheduler.pref", "w");
     if (prefFile == NULL)
     {
         perror("Can not open scheduler.pref file\n");
@@ -85,21 +85,22 @@ void initialResource()
     }
 }
 
-void AddProcess(struct PData p)
+bool AddProcess(struct PData p)
 {
 
     // allocate memory
     bool canAllocate = allocateMemory(&p);
-   if(!canAllocate) {
+    if (!canAllocate)
+    {
         printf("Process %d can't allocate memory waiting\n", p.id);
         // add to waiting list
         enqueuePQ(p, p.memorySize, waitingQueue);
-        return;
-    } 
-    int y=getClk();
-   
-    fprintf(memoryfile,"At time %d allocated %d bytes from process %d from %d to %d\n",y,p.memorySize,p.id,p.memoryStart,p.memoryEnd);
-     
+        return false;
+    }
+    int y = getClk();
+
+    fprintf(memoryfile, "At time %d allocated %d bytes from process %d from %d to %d\n", y, p.memorySize, p.id, p.memoryStart, p.memoryEnd);
+
     char st[CountDigit(p.runningtime) + 2];
     sprintf(st, "%d", p.runningtime); // convert runningtime to string to pass it for process program
     pid_t x = fork();
@@ -134,9 +135,8 @@ void AddProcess(struct PData p)
         break;
     }
     kill(x, SIGTSTP);
+    return true;
 }
-
-
 
 bool runSched(int x)
 {
@@ -167,9 +167,10 @@ void PTerminate(int)
 {
     // remove the process from the memory
     deallocateMemory(runningProcess);
-    int x=getClk();
+    int x = getClk();
 
-    fprintf( memoryfile,"At time %d freed %d bytes from process %d from %d to %d\n",x,runningProcess->memorySize,runningProcess->id,runningProcess->memoryStart,runningProcess->memoryEnd);
+    fprintf(memoryfile, "At time %d freed %d bytes from process %d from %d to %d\n",
+            x, runningProcess->memorySize, runningProcess->id, runningProcess->memoryStart, runningProcess->memoryEnd);
 
     switch (algo)
     {
@@ -185,14 +186,15 @@ void PTerminate(int)
     default:
         break;
     }
-
-if(waitingQueue->count != 0) {
-    // take one from waiting list and try to add it
-    struct PData* p = malloc(sizeof(struct PData));
-    frontPQ(waitingQueue, p);
-    dequeuePQ(waitingQueue);
-    AddProcess(*p);
-}
+    bool reAllocate = true;
+    while (waitingQueue->count != 0 && reAllocate)
+    {
+        // take one from waiting list and try to add it
+        struct PData *p = malloc(sizeof(struct PData));
+        frontPQ(waitingQueue, p);
+        dequeuePQ(waitingQueue);
+        reAllocate = AddProcess(*p);
+    }
 }
 
 int CountDigit(int x)
@@ -209,8 +211,6 @@ int CountDigit(int x)
 void mainLoop()
 {
 
-    
-
     while (!stopRcv || !finishSched || waitingQueue->count != 0)
     {
         struct PData process;
@@ -226,7 +226,7 @@ void mainLoop()
         }
         else
         {
-            
+
             printf("Receive process at time %d\n", x);
             printf(" process memory %d\n", process.memorySize);
             process.state = arrived;
