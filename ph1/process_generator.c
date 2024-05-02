@@ -15,16 +15,23 @@ int quantum = -1; // for only RR algo
 struct PQueue *proc;
 int msq_id; // message queue to send processes at appropriate time
 
+char *str;
+char *quantumArg;
+char *path;
+
 int main(int argc, char *argv[])
 {
     signal(SIGINT, clearResources);
     // TODO Initialization
     // 1. Read the input files.
+     path = argv[2];
     proc = readInputFile();
     int process_nums = proc->count;
 
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
     /*  1 -> HPF      2 -> SRTN     3 -> RR */
+    str = argv[1];
+    quantumArg = argv[3];
     SelAlgo();
 
     // 3. Initiate and create the scheduler and clock processes.
@@ -125,7 +132,7 @@ struct PQueue *readInputFile()
 {
     FILE *input_file;
     struct PQueue *queue = createQ();
-    input_file = fopen("processes.txt", "r");
+    input_file = fopen(path, "r");
     if (input_file == NULL)
     {
         perror("Can't open input file\n");
@@ -150,18 +157,30 @@ void SelAlgo()
 {
     bool corrRead = false; // to verfiy reading values
     /*  1 -> HPF      2 -> SRTN     3 -> RR */
-    printf("algorithms: 1->HPF, 2->SRTN, 3->RR\n");
+    //printf("algorithms: 1->HPF, 2->SRTN, 3->RR\n");
+    if(strcmp (str, "HPF") == 0)
+    {
+        algo = 1;
+    }
+    else if(strcmp (str, "SRTN") == 0)
+    {
+        algo = 2;
+    }
+    else 
+    {
+        algo = 3;
+    }
+
     do
     {
-        printf("Please choose algorithm: ");
-        scanf("%d", &algo);
+        //scanf("%d", &algo);
         if (algo == RR)
         {
             bool corrQ = false; // to verfiy quantum;
             do
             {
-                printf("Please write quantum of RR algo ");
-                scanf("%d", &quantum);
+                quantum = atoi(quantumArg);
+                printf("quantum = %d\n", quantum);
                 if ((int)quantum >= 1)
                 {
                     corrQ = true;
