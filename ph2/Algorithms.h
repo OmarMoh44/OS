@@ -34,6 +34,12 @@ bool runHPF(int x)
         printf("Wake up process %d at time %d\n", runningProcess->id, x);
         runningProcess->waittime = x - runningProcess->arrivaltime;
         logProcessInfo(runningProcess, x);
+        lastClock = x;
+    }else{
+        if(lastClock != x){
+            lastClock = x;
+            runningProcess->remaintime--;
+        }
     }
     return false;
 }
@@ -42,7 +48,6 @@ void PTerminateHPF()
 {
     runningProcess->state = finished;
     int x = getClk();
-    runningProcess->remaintime = 0;
     printf("Terminate process %d at time %d\n", runningProcess->id, x);
     logProcessInfo(runningProcess, x);
     free(runningProcess);
