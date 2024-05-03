@@ -9,6 +9,9 @@
 
 int pid;
 
+#include <string.h>
+
+
 void create_image_from_text(const char *filename1, const char *filename2)
 {
     // Open the first text file
@@ -156,35 +159,54 @@ void button_clicked(GtkButton *button, gpointer data)
     g_print("Entered path: %s\n", entered_path);
 
     // Fork to create a child process
-    pid = fork();
-    if (pid == -1)
-    {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-    else if (pid == 0) // Child process
-    {
-        // Detach the child process from the parent process
-        if (setsid() == -1)
-        {
-            perror("setsid");
-            exit(EXIT_FAILURE);
-        }
+    // pid = fork();
+    // if (pid == -1)
+    // {
+    //     perror("fork");
+    //     exit(EXIT_FAILURE);
+    // }
+    // else if (pid == 0) // Child process
+    // {
+    //     // Detach the child process from the parent process
+    //     if (setsid() == -1)
+    //     {
+    //         perror("setsid");
+    //         exit(EXIT_FAILURE);
+    //     }
 
-        // Execute the process generator
-        execl("./process_generator.out", "process_generator", selected_option, entered_path, entered_quantum, NULL);
-        // If execl returns, there was an error
-        perror("execl");
-        exit(EXIT_FAILURE);
-    }
-    else // Parent process
-    {
-        int status;
-        // Wait for the child process to finish
-        waitpid(pid, &status, 0);
-        create_image_from_text("scheduler.pref", "scheduler.log");
-        printf("\nHello from GUI\n");
-    }
+    //     // Execute the process generator
+    //     execl("./process_generator.out", "process_generator", selected_option, entered_path, entered_quantum, NULL);
+    //     // If execl returns, there was an error
+    //     perror("execl");
+    //     exit(EXIT_FAILURE);
+    // }
+    // else // Parent process
+    // {
+    //     int status;
+    //     // Wait for the child process to finish
+    //     waitpid(pid, &status, 0);
+        // create_image_from_text("scheduler.pref", "scheduler.log");
+        // printf("\nHello from GUI\n");
+    // }
+
+
+char command[1000] = "./process_generator.out "; // Initialize with the base command
+    // Concatenate the selected_option, entered_path, and entered_quantum to the command
+    strcat(command, selected_option);
+    strcat(command, " ");
+    strcat(command, entered_path);
+    strcat(command, " ");
+    strcat(command, entered_quantum);
+
+    // Now, execute the command using system
+    system(command);
+
+    create_image_from_text("scheduler.pref", "scheduler.log");
+         printf("\nHello from GUI\n");
+    // Wait for the command to finish execution
+   
+    
+                
 }
 
 void destroy(GtkWidget *widget, gpointer data)
