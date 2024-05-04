@@ -121,6 +121,7 @@ void forkClockProcess()
 
 void clearResources(int signum)
 {
+    signal(SIGINT, clearResources);
     // TODO Clears all resources in case of interruption
     // for now
     deleteQ(proc);

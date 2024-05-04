@@ -6,6 +6,7 @@ int x, y;
 
 void Processing()
 {
+
     x = getClk();
     printf("Start at time %d with remaining %d , process id %d\n", x, remainingtime, getpid());
     while (remainingtime > 0)
@@ -22,9 +23,15 @@ void Processing()
     }
 }
 
+void handler(int signum)
+{
+    x = y + 1;
+    signal(SIGCONT, handler);
+}
 
 int main(int argc, char *argv[])
 {
+    signal(SIGCONT, handler);
     remainingtime = atoi(argv[1]);
     initClk();
 

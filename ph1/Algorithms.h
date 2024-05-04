@@ -28,6 +28,7 @@ bool runHPF(int x)
         frontPQ(priQueue, runningProcess);
         dequeuePQ(priQueue);
         runningProcess->state = started;
+        
         kill(runningProcess->pid, SIGCONT);
         printf("Wake up process %d at time %d\n", runningProcess->id, x);
         runningProcess->waittime = x - runningProcess->arrivaltime;
@@ -79,6 +80,7 @@ bool runSRTN(int x)
             runningProcess->state = resumed;
         }
         lastClock = x;
+        
         kill(runningProcess->pid, SIGCONT);
         logProcessInfo(runningProcess, x);
     }
@@ -107,6 +109,7 @@ bool runSRTN(int x)
             printf("Stop process %d at time %d\n", runningProcess->id, x);
             runningProcess->state = stopped;
             logProcessInfo(runningProcess, x);
+            
             kill(runningProcess->pid, SIGSTOP);
             enqueuePQ(*runningProcess, runningProcess->remaintime, priQueue);
             free(runningProcess);
@@ -166,6 +169,7 @@ bool runRR(int x)
             printf("Resume process %d at time %d , process pid %d\n", runningProcess->id, x, runningProcess->pid);
             runningProcess->state = resumed;
         }
+        
         kill(runningProcess->pid, SIGCONT);
         logProcessInfo(runningProcess, x);
     }
@@ -180,8 +184,9 @@ bool runRR(int x)
             {
                 return false;
             }
-            if(cirQueue->count == 0){
-                lastClock=x;
+            if (cirQueue->count == 0)
+            {
+                lastClock = x;
                 remainingQuantum = quantum;
                 return false;
             }
@@ -189,6 +194,7 @@ bool runRR(int x)
             printf("Stop process %d at time %d , process pid %d\n", runningProcess->id, x, runningProcess->pid);
             runningProcess->state = stopped;
             logProcessInfo(runningProcess, x);
+            
             kill(runningProcess->pid, SIGSTOP);
 
             // add the process to the queue

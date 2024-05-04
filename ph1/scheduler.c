@@ -126,6 +126,7 @@ bool runSched(int x)
 
 void ClearResou(int)
 {
+    signal(SIGINT, ClearResou);
     free(priQueue);
     free(cirQueue);
     fclose(logFile);
@@ -135,6 +136,7 @@ void ClearResou(int)
 
 void PTerminate(int)
 {
+    signal(SIGUSR1, PTerminate);
     switch (algo)
     {
     case RR:

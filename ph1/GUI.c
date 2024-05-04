@@ -32,7 +32,7 @@ void create_image_from_text(const char *filename1, const char *filename2)
     }
 
     // Create a Cairo surface for the image
-    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 3000, 3000);
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1000, 3000);
     cairo_t *cr = cairo_create(surface);
 
     // Check if surface and context creation were successful
