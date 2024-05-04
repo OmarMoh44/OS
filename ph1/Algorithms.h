@@ -9,9 +9,9 @@ void logProcessInfo(struct PData *p, int x);
 
 int processCount = 0;
 int sumWT = 0;
-int sumWTA = 0;
-int AvgWTA = 0;
-int AvgWT = 0;
+float sumWTA = 0;
+float AvgWTA = 0;
+float AvgWT = 0;
 int sumRT = 0;
 struct Queue WTAQ;
 
@@ -245,7 +245,9 @@ void logProcessInfo(struct PData *p, int x)
         int TA = x - p->arrivaltime;
         float WTA = (TA + 0.0) / p->runningtime;
         sumWTA += WTA;
+        printf("sumWTA now = %f", sumWTA);
         sumWT += wait;
+        printf("sumWT now = %d", sumWT);
         enQueue(&WTAQ, WTA);
         fprintf(logFile, "At time %d process %d finished arr %d total %d remain 0 wait %d TA %d WTA %.2f\n",
                 x, p->id, p->arrivaltime, p->runningtime, wait, TA, WTA);

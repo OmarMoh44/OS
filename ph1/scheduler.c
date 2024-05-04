@@ -166,7 +166,7 @@ void mainLoop()
 {
     while (!stopRcv || !finishSched)
     {
-       
+
         struct PData process;
         int rcv = msgrcv(msq_id, &process, sizeof(struct PData), 0, IPC_NOWAIT);
         int x = getClk();
@@ -180,7 +180,7 @@ void mainLoop()
         }
         else
         {
-            
+
             printf("Receive process at time %d\n", x);
             process.state = arrived;
             sumRT += process.runningtime;
@@ -190,7 +190,9 @@ void mainLoop()
         finishSched = runSched(x);
     }
     float avgWTA = (float)sumWTA / (float)WTAQ.count;
+    printf("sumWTA = %f\n", sumWTA);
     float avgWT = (float)sumWT / (float)WTAQ.count;
+    printf("sumTA = %f\n", sumWTA);
     float SD = 0;
     int tempCount = WTAQ.count;
     float cpuUTI = (float)sumRT / (float)getClk() * 100;
@@ -200,7 +202,7 @@ void mainLoop()
         SD += pow(x - avgWTA, 2);
     }
     SD = sqrt(SD / tempCount);
-
+    printf("Std = %f\n", SD);
     fprintf(prefFile, "CPU Utilization = %f%% \nAvg WTA = %f\nAvg WT = %f\nStd WTA = %f\n", cpuUTI, avgWTA, avgWT, SD);
     printf("OUT of main loop in scheduler\n");
 }
