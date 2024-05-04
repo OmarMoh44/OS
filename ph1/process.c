@@ -18,6 +18,7 @@ void Processing()
         {
             remainingtime--;
             printf("At time %d with remaining %d , process id %d\n", y, remainingtime, getpid());
+            // usleep(250000);
         }
         x = y;
     }
@@ -25,7 +26,7 @@ void Processing()
 
 void handler(int signum)
 {
-    x = y + 1;
+    x = getClk() + 1;
     signal(SIGCONT, handler);
 }
 
