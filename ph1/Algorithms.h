@@ -180,6 +180,11 @@ bool runRR(int x)
             {
                 return false;
             }
+            if(cirQueue->count == 0){
+                lastClock=x;
+                remainingQuantum = quantum;
+                return false;
+            }
             // stop the process
             printf("Stop process %d at time %d , process pid %d\n", runningProcess->id, x, runningProcess->pid);
             runningProcess->state = stopped;
