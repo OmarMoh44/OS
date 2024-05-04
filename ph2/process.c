@@ -7,32 +7,31 @@ int x, y;
 void Processing()
 {
     x = getClk();
-    printf("Start at time %d\n", x);
+    printf("Start at time %d with remaining %d , process id %d\n", x, remainingtime, getpid());
     while (remainingtime > 0)
     {
         y = getClk();
         if (y == x)
             continue;
-        x = getClk();
-        remainingtime--;
+        if (y - x == 1)
+        {
+            remainingtime--;
+            printf("At time %d with remaining %d , process id %d\n", y, remainingtime, getpid());
+        }
+        x = y;
     }
 }
 
-void handler(int)
-{
-    Processing();
-}
 
 int main(int argc, char *argv[])
 {
-    signal(SIGCONT, handler);
     remainingtime = atoi(argv[1]);
     initClk();
 
     // TODO it needs to get the remaining time from somewhere
     // remainingtime = ??;
     Processing();
-    printf("Process terminate at time %d\n", x);
+    printf("Process terminate at time %d , process id %d\n", x, getpid());
     kill(getppid(), SIGUSR1);
     destroyClk(false);
     return 0;
