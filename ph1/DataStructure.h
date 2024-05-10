@@ -397,7 +397,7 @@ void deletePQ(struct PPQueue *queue)
 // A linked list node
 struct Node
 {
-    int data;
+    float data;
     struct Node *next;
 };
 
@@ -409,7 +409,7 @@ struct Queue
 };
 
 // A utility function to create a new linked list node.
-struct Node *newNode(int k)
+struct Node *newNode(float k)
 {
     struct Node *temp = (struct Node *)malloc(sizeof(struct Node));
     temp->data = k;
@@ -426,7 +426,7 @@ struct Queue *createQueue()
 }
 
 // The function to add a key k to the queue
-void enQueue(struct Queue *q, int k)
+void enQueue(struct Queue *q, float k)
 {
     // Create a new node
     struct Node *temp = newNode(k);
@@ -445,7 +445,7 @@ void enQueue(struct Queue *q, int k)
 
 // Function to remove a key from the queue
 // Function to remove a key from the queue and return the removed key
-int deQueue(struct Queue *q)
+float deQueue(struct Queue *q)
 {
     // If queue is empty, return NULL.
     if (q->front == NULL)
@@ -453,7 +453,7 @@ int deQueue(struct Queue *q)
     q->count--;
     // Store previous front and move front one node ahead
     struct Node *temp = q->front;
-    int item = temp->data;
+    float item = temp->data;
 
     q->front = q->front->next;
 

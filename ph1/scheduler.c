@@ -191,18 +191,21 @@ void mainLoop()
         }
         finishSched = runSched(x);
     }
-    float avgWTA = (float)sumWTA / (float)WTAQ.count;
+    float avgWTA = (sumWTA) / WTAQ.count;
     printf("sumWTA = %f\n", sumWTA);
-    float avgWT = (float)sumWT / (float)WTAQ.count;
+    float avgWT = (sumWT + 0.0) / (float)WTAQ.count;
     printf("sumTA = %f\n", sumWTA);
     float SD = 0;
     int tempCount = WTAQ.count;
+    printf("tempCount = %d\n", tempCount);
     float cpuUTI = (float)sumRT / (float)getClk() * 100;
     while (WTAQ.count != 0)
     {
-        int x = deQueue(&WTAQ);
+        float x = deQueue(&WTAQ);
         SD += pow(x - avgWTA, 2);
+        printf("power = %f with x = %f\n", pow(x - avgWTA, 2), x);
     }
+    printf("SD = %f\n", SD);
     SD = sqrt(SD / tempCount);
     printf("Std = %f\n", SD);
     fprintf(prefFile, "CPU Utilization = %f%% \nAvg WTA = %f\nAvg WT = %f\nStd WTA = %f\n", cpuUTI, avgWTA, avgWT, SD);

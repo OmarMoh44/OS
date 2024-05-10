@@ -11,9 +11,9 @@ void logProcessInfo(struct PData *p, int x);
 
 int processCount = 0;
 int sumWT = 0;
-int sumWTA = 0;
-int AvgWTA = 0;
-int AvgWT = 0;
+float sumWTA = 0;
+float AvgWTA = 0;
+float AvgWT = 0;
 int sumRT = 0;
 struct Queue WTAQ;
 
@@ -39,6 +39,7 @@ bool runHPF(int x)
         if(lastClock != x){
             lastClock = x;
             runningProcess->remaintime--;
+            kill(runningProcess->pid, SIGUSR1);
         }
     }
     return false;
@@ -87,6 +88,7 @@ bool runSRTN(int x)
         {
             lastClock = x;
             runningProcess->remaintime--;
+            kill(runningProcess->pid, SIGUSR1);
         }
         struct PData *gProcess = NULL;
         gProcess = malloc(sizeof(struct PData));
@@ -205,6 +207,7 @@ bool runRR(int x)
                 if (runningProcess != NULL)
                 {
                     runningProcess->remaintime--;
+                    kill(runningProcess->pid, SIGUSR1);
                 }
                 remainingQuantum--;
                 lastClock = x;

@@ -28,7 +28,7 @@ bool runHPF(int x)
         frontPQ(priQueue, runningProcess);
         dequeuePQ(priQueue);
         runningProcess->state = started;
-        
+
         kill(runningProcess->pid, SIGCONT);
         printf("Wake up process %d at time %d\n", runningProcess->id, x);
         runningProcess->waittime = x - runningProcess->arrivaltime;
@@ -41,6 +41,7 @@ bool runHPF(int x)
         {
             lastClock = x;
             runningProcess->remaintime--;
+            kill(runningProcess->pid, SIGUSR1);
         }
     }
     return false;
@@ -80,7 +81,7 @@ bool runSRTN(int x)
             runningProcess->state = resumed;
         }
         lastClock = x;
-        
+
         kill(runningProcess->pid, SIGCONT);
         logProcessInfo(runningProcess, x);
     }
@@ -90,6 +91,7 @@ bool runSRTN(int x)
         {
             lastClock = x;
             runningProcess->remaintime--;
+            kill(runningProcess->pid, SIGUSR1);
         }
         struct PData *gProcess = NULL;
         gProcess = malloc(sizeof(struct PData));
@@ -109,7 +111,7 @@ bool runSRTN(int x)
             printf("Stop process %d at time %d\n", runningProcess->id, x);
             runningProcess->state = stopped;
             logProcessInfo(runningProcess, x);
-            
+
             kill(runningProcess->pid, SIGSTOP);
             enqueuePQ(*runningProcess, runningProcess->remaintime, priQueue);
             free(runningProcess);
@@ -169,7 +171,7 @@ bool runRR(int x)
             printf("Resume process %d at time %d , process pid %d\n", runningProcess->id, x, runningProcess->pid);
             runningProcess->state = resumed;
         }
-        
+
         kill(runningProcess->pid, SIGCONT);
         logProcessInfo(runningProcess, x);
     }
@@ -194,7 +196,7 @@ bool runRR(int x)
             printf("Stop process %d at time %d , process pid %d\n", runningProcess->id, x, runningProcess->pid);
             runningProcess->state = stopped;
             logProcessInfo(runningProcess, x);
-            
+
             kill(runningProcess->pid, SIGSTOP);
 
             // add the process to the queue
@@ -211,6 +213,7 @@ bool runRR(int x)
                 if (runningProcess != NULL)
                 {
                     runningProcess->remaintime--;
+                    kill(runningProcess->pid, SIGUSR1);
                 }
                 remainingQuantum--;
                 lastClock = x;
@@ -256,9 +259,9 @@ void logProcessInfo(struct PData *p, int x)
         int TA = x - p->arrivaltime;
         float WTA = (TA + 0.0) / p->runningtime;
         sumWTA += WTA;
-        printf("sumWTA now = %f", sumWTA);
+        printf("sumWTA now = %f ", sumWTA);
         sumWT += wait;
-        printf("sumWT now = %d", sumWT);
+        printf("sumWT now = %d\n", sumWT);
         enQueue(&WTAQ, WTA);
         fprintf(logFile, "At time %d process %d finished arr %d total %d remain 0 wait %d TA %d WTA %.2f\n",
                 x, p->id, p->arrivaltime, p->runningtime, wait, TA, WTA);
