@@ -13,6 +13,7 @@ void ClearResou(int);
 void PTerminate(int);
 void intitateFiles();
 int CountDigit(int x); // count number of digits of integer to convert it to string
+void ChangeFlag();
 FILE *memoryfile;
 int main(int argc, char *argv[])
 {
@@ -21,7 +22,7 @@ int main(int argc, char *argv[])
     WTAQ.rear = NULL;
     WTAQ.count = 0;
     signal(SIGINT, ClearResou);  // free queues at end of program
-    signal(SIGUSR1, PTerminate); // handler action when process terminate and notify parent
+    signal(SIGUSR1, ChangeFlag); // handler action when process terminate and notify parent
     initialResource();
     initClk();
 
@@ -92,7 +93,7 @@ bool AddProcess(struct PData p)
     bool canAllocate = allocateMemory(&p);
     if (!canAllocate)
     {
-        printf("Process %d can't allocate memory waiting\n", p.id);
+        printf("Process %d can't allocate memory waiting with pid %d at time %d\n", p.id, p.pid, getClk());
         // add to waiting list
         enqueuePQ(p, p.memorySize, waitingQueue);
         return false;
@@ -166,7 +167,7 @@ void ClearResou(int)
 
 void PTerminate(int)
 {
-    signal(SIGUSR1, PTerminate);
+
     // remove the process from the memory
     deallocateMemory(runningProcess);
     int x = getClk();
@@ -197,6 +198,8 @@ void PTerminate(int)
         dequeuePQ(waitingQueue);
         reAllocate = AddProcess(*p);
     }
+    printf("YES, DDDod\n");
+    // signal(SIGUSR1, PTerminate);
 }
 
 int CountDigit(int x)
@@ -208,6 +211,13 @@ int CountDigit(int x)
         x /= 10;
     }
     return ++count;
+}
+
+void ChangeFlag()
+{
+    printf("ChangeFlag\n");
+    flag = true;
+    signal(SIGUSR1, ChangeFlag);
 }
 
 void mainLoop()
@@ -237,6 +247,11 @@ void mainLoop()
             continue;
         }
         finishSched = runSched(x);
+        if (flag)
+        {
+            PTerminate(x);
+            flag = false;
+        }
     }
     float avgWTA = (sumWTA) / WTAQ.count;
     printf("sumWTA = %f\n", sumWTA);

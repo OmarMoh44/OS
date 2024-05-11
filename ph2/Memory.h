@@ -72,7 +72,7 @@ struct TreeNode *findSmallestRec(struct TreeNode *node, int size)
     }
     else
     {
-        return leftSmallest->size < rightSmallest->size ? leftSmallest : rightSmallest;
+        return leftSmallest->size <= rightSmallest->size ? leftSmallest : rightSmallest;
     }
 }
 
@@ -132,7 +132,7 @@ bool allocateMemory(struct PData *process)
         updateParent(smallestNode);
     }
 
-    printf("Memory Allocated for process %d from %d to %d\n", process->id, process->memoryStart, process->memoryEnd);
+    printf("Memory Allocated for process %d from %d to %d at time %d\n", process->id, process->memoryStart, process->memoryEnd, getClk());
 
     return true;
 }
@@ -196,6 +196,10 @@ void updateParent(struct TreeNode *node)
         if (node->parent->left->allocated == 2 && node->parent->right->allocated == 2)
         {
             node->parent->allocated = 2;
+        }
+        else if (node->parent->left->allocated == 0 && node->parent->right->allocated == 0)
+        {
+            node->parent->allocated = 0;
         }
         else
         {

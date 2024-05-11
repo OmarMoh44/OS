@@ -4,23 +4,35 @@
 int remainingtime;
 int x, y;
 
-void Decrement(int)
+void Processing()
 {
-    remainingtime--;
+    x = getClk();
+    printf("Start at time %d\n", x);
+    while (remainingtime > 0)
+    {
+        remainingtime--;
+        for (int i = 0; i < 50; i++)
+        {
+            usleep(20000-1);
+        }
+    }
+}
+
+void handler(int)
+{
+    // Processing();
 }
 
 int main(int argc, char *argv[])
 {
-    signal(SIGUSR1, Decrement);
+    signal(SIGCONT, handler);
     remainingtime = atoi(argv[1]);
     initClk();
 
     // TODO it needs to get the remaining time from somewhere
     // remainingtime = ??;
-    while (remainingtime > 0)
-    {
-    }
-    printf("Process terminate at time %d , process id %d\n", x, getpid());
+    Processing();
+    printf("Process terminate at time %d\n", x);
     kill(getppid(), SIGUSR1);
     destroyClk(false);
     return 0;

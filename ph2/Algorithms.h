@@ -17,6 +17,8 @@ float AvgWT = 0;
 int sumRT = 0;
 struct Queue WTAQ;
 
+bool flag = false;
+
 /*    HPF      */
 bool runHPF(int x)
 {
@@ -33,15 +35,26 @@ bool runHPF(int x)
         kill(runningProcess->pid, SIGCONT);
         printf("Wake up process %d at time %d\n", runningProcess->id, x);
         runningProcess->waittime = x - runningProcess->arrivaltime;
+
         logProcessInfo(runningProcess, x);
+
         lastClock = x;
-    }else{
-        if(lastClock != x){
+        // printf("three\n");
+    }
+    else
+    {
+        if (lastClock != x)
+        {
             lastClock = x;
             runningProcess->remaintime--;
-            kill(runningProcess->pid, SIGUSR1);
+            if (runningProcess == NULL)
+            {
+                printf("running process is null\n");
+            }
+            // int x = kill(runningProcess->pid, SIGUSR1);
         }
     }
+
     return false;
 }
 
@@ -88,7 +101,7 @@ bool runSRTN(int x)
         {
             lastClock = x;
             runningProcess->remaintime--;
-            kill(runningProcess->pid, SIGUSR1);
+            // kill(runningProcess->pid, SIGUSR1);
         }
         struct PData *gProcess = NULL;
         gProcess = malloc(sizeof(struct PData));
@@ -155,7 +168,7 @@ bool runRR(int x)
             // reset the quantum
             remainingQuantum = quantum;
             lastClock = x;
-            printf("Wake up process %d at time %d\n", runningProcess->id, x);
+            printf("Wake up process %d at time %d with pid %d\n", runningProcess->id, x, runningProcess->pid);
             runningProcess->state = started;
             runningProcess->waittime = x - runningProcess->arrivaltime;
         }
@@ -164,7 +177,7 @@ bool runRR(int x)
             // reset the quantum
             remainingQuantum = quantum;
             lastClock = x;
-            printf("Resume process %d at time %d\n", runningProcess->id, x);
+            printf("Resume process %d at time %d with pid %d\n", runningProcess->id, x, runningProcess->pid);
             runningProcess->state = resumed;
         }
         kill(runningProcess->pid, SIGCONT);
@@ -182,13 +195,14 @@ bool runRR(int x)
                 return false;
             }
 
-            if(cirQueue->count == 0){
-                lastClock=x;
+            if (cirQueue->count == 0)
+            {
+                lastClock = x;
                 remainingQuantum = quantum;
                 return false;
             }
             // stop the process
-            printf("Stop process %d at time %d\n", runningProcess->id, x);
+            printf("Stop process %d at time %d with pid %d\n", runningProcess->id, x, runningProcess->pid);
             runningProcess->state = stopped;
             logProcessInfo(runningProcess, x);
             kill(runningProcess->pid, SIGSTOP);
@@ -207,7 +221,7 @@ bool runRR(int x)
                 if (runningProcess != NULL)
                 {
                     runningProcess->remaintime--;
-                    kill(runningProcess->pid, SIGUSR1);
+                    // kill(runningProcess->pid, SIGUSR1);
                 }
                 remainingQuantum--;
                 lastClock = x;
@@ -250,6 +264,7 @@ void logProcessInfo(struct PData *p, int x)
         break;
 
     case 4: // finished
+        printf("OSSSSSSSSSSSSSSSS\n");
         int TA = x - p->arrivaltime;
         float WTA = (TA + 0.0) / p->runningtime;
         sumWTA += WTA;
